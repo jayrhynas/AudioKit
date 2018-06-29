@@ -13,11 +13,11 @@ public class AKSamplerAudioUnit: AKGeneratorAudioUnitBase {
     
     var pDSP: UnsafeMutableRawPointer?
 
-    func setParameter(_ address: AKSamplerParameter, value: Double) {
+    public func setParameter(_ address: AKSamplerParameter, value: Double) {
         setParameterWithAddress(AUParameterAddress(address.rawValue), value: Float(value))
     }
 
-    func setParameterImmediately(_ address: AKSamplerParameter, value: Double) {
+    public func setParameterImmediately(_ address: AKSamplerParameter, value: Double) {
         setParameterImmediatelyWithAddress(AUParameterAddress(address.rawValue), value: Float(value))
     }
 
@@ -254,22 +254,22 @@ public class AKSamplerAudioUnit: AKGeneratorAudioUnitBase {
         doAKSamplerRestartVoices(pDSP)
     }
 
-    public func loadLayer(from layerDescriptor: AKLayerDescriptor) -> Layer {
+    @objc public func loadLayer(from layerDescriptor: AKLayerDescriptor) -> Layer {
         var copy = layerDescriptor
         return doAKSamplerLoadLayer(pDSP, &copy)
     }
     
-    public func loadSampleData(from sampleDataDescriptor: AKSampleDataDescriptor, in layer: Layer? = nil) {
+    @objc public func loadSampleData(from sampleDataDescriptor: AKSampleDataDescriptor, in layer: Layer? = nil) {
         var copy = sampleDataDescriptor
         doAKSamplerLoadData(pDSP, &copy, layer)
     }
 
-    public func loadCompressedSampleFile(from sampleFileDescriptor: AKSampleFileDescriptor, in layer: Layer? = nil) {
+    @objc public func loadCompressedSampleFile(from sampleFileDescriptor: AKSampleFileDescriptor, in layer: Layer? = nil) {
         var copy = sampleFileDescriptor
         doAKSamplerLoadCompressedFile(pDSP, &copy, layer)
     }
 
-    public func unloadAllSamples() {
+    @objc public func unloadAllSamples() {
         doAKSamplerUnloadAllSamples(pDSP)
     }
 
@@ -277,10 +277,11 @@ public class AKSamplerAudioUnit: AKGeneratorAudioUnitBase {
         doAKSamplerBuildSimpleKeyMap(pDSP)
     }
 
-    public func buildKeyMap() {
+    @objc public func buildKeyMap() {
         doAKSamplerBuildKeyMap(pDSP)
     }
 
+    @objc(setLoopThruRelease:)
     public func setLoop(thruRelease: Bool) {
         doAKSamplerSetLoopThruRelease(pDSP, thruRelease)
     }
