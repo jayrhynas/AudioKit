@@ -11,6 +11,22 @@
 
 typedef struct
 {
+    float attackDuration;
+    float decayDuration;
+    float sustainLevel;
+    float releaseDuration;
+    
+} AKEnvelopeDescriptor;
+
+typedef struct
+{
+    AKEnvelopeDescriptor *adsrEnvelope;
+    AKEnvelopeDescriptor *filterEnvelope;
+    
+} AKLayerDescriptor;
+
+typedef struct
+{
     int noteNumber;
     float noteFrequency;
     
@@ -20,7 +36,7 @@ typedef struct
     bool isLooping;
     float loopStartPoint, loopEndPoint;
     float startPoint, endPoint;
-
+    
 } AKSampleDescriptor;
 
 typedef struct

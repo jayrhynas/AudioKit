@@ -20,6 +20,7 @@
 
 namespace AudioKitCore
 {
+    struct SamplerLayer;
     
     class Sampler
     {
@@ -34,8 +35,10 @@ namespace AudioKitCore
         void stopAllVoices();
         void restartVoices();
 
+        SamplerLayer *loadLayer(AKLayerDescriptor& ld);
+        
         // call to load samples
-        void loadSampleData(AKSampleDataDescriptor& sdd);
+        void loadSampleData(AKSampleDataDescriptor& sdd, SamplerLayer *layer = nullptr);
         
         // after loading samples, call one of these to build the key map
         void buildKeyMap(void);         // use this when you have full key mapping data (min/max note, vel)
@@ -75,6 +78,9 @@ namespace AudioKitCore
         // performance parameters
         float masterVolume, pitchOffset, vibratoDepth;
 
+        // layers
+        std::list<SamplerLayer *> layerList;
+        
         // per-voice filter parameters
         float cutoffMultiple;   // multiple of note frequency - 1.0 means cutoff at fundamental
         float cutoffEnvelopeStrength; // how much filter EG adds on top of cutoffMultiple

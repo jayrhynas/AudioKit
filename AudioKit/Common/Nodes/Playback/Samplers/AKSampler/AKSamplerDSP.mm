@@ -14,11 +14,15 @@ extern "C" void* createAKSamplerDSP(int nChannels, double sampleRate) {
     return new AKSamplerDSP();
 }
 
-extern "C" void doAKSamplerLoadData(void* pDSP, AKSampleDataDescriptor* pSDD) {
-    ((AKSamplerDSP*)pDSP)->loadSampleData(*pSDD);
+extern "C" const void* doAKSamplerLoadLayer(void* pDSP, AKLayerDescriptor* pLD) {
+    return ((AKSamplerDSP *)pDSP)->loadLayer(*pLD);
 }
 
-extern "C" void doAKSamplerLoadCompressedFile(void* pDSP, AKSampleFileDescriptor* pSFD)
+extern "C" void doAKSamplerLoadData(void* pDSP, AKSampleDataDescriptor* pSDD, const void* pLayer) {
+    ((AKSamplerDSP*)pDSP)->loadSampleData(*pSDD, (AudioKitCore::SamplerLayer *)pLayer);
+}
+
+extern "C" void doAKSamplerLoadCompressedFile(void* pDSP, AKSampleFileDescriptor* pSFD, const void* pLayer)
 {
     char errMsg[100];
     WavpackContext* wpc = WavpackOpenFileInput(pSFD->path, errMsg, OPEN_2CH_MAX, 0);
@@ -49,7 +53,7 @@ extern "C" void doAKSamplerLoadCompressedFile(void* pDSP, AKSampleFileDescriptor
             *pf++ = scale * *pi++;
     }
     
-    ((AKSamplerDSP*)pDSP)->loadSampleData(sdd);
+    ((AKSamplerDSP*)pDSP)->loadSampleData(sdd, (AudioKitCore::SamplerLayer *)pLayer);
     delete[] sdd.data;
 }
 

@@ -72,6 +72,8 @@ namespace AudioKitCore
         }
     };
     
+    struct ADSREnvelopeParameters;
+
     // KeyMappedSampleBuffer is a derived version with added MIDI note-number and velocity ranges
     struct KeyMappedSampleBuffer : public SampleBuffer
     {
@@ -79,6 +81,9 @@ namespace AudioKitCore
         int noteNumber;     // closest MIDI note-number to this sample's frequency (noteFrequency)
         int minimumNoteNumber, maximumNoteNumber;     // bounding note numbers for mapping
         int minimumVelocity, maximumVelocity;       // min/max MIDI velocities for mapping
+        
+        struct ADSREnvelopeParameters *adsrEnvelopeParameters;
+        struct ADSREnvelopeParameters *filterEnvelopeParameters;
     };
 
 }
