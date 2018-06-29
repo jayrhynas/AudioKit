@@ -75,6 +75,8 @@ struct AKSamplerDSP : AKDSPBase, AudioKitCore::Sampler
     float getParameter(uint64_t address) override;
     
     void process(AUAudioFrameCount frameCount, AUAudioFrameCount bufferOffset) override;
+    
+    void handleMIDIEvent(AUMIDIEvent const& midiEvent) override;
 };
 
 #endif

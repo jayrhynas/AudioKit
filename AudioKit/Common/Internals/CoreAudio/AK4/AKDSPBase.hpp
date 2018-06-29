@@ -97,6 +97,9 @@ public:
     void processWithEvents(AudioTimeStamp const *timestamp, AUAudioFrameCount frameCount,
                            AURenderEvent const *events);
 
+protected:
+    virtual void handleMIDIEvent(AUMIDIEvent const& midiEvent) {};
+    
 private:
 
     void handleOneEvent(AURenderEvent const *event);

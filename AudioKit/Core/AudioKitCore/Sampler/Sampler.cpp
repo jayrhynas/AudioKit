@@ -269,8 +269,12 @@ namespace AudioKitCore {
         while (noteStillSounding)
         {
             noteStillSounding = false;
-            for (int i=0; i < MAX_POLYPHONY; i++)
-                if (voice[i].noteNumber >= 0) noteStillSounding = true;
+            for (int i=0; i < MAX_POLYPHONY; i++) {
+                if (voice[i].noteNumber >= 0) {
+                    noteStillSounding = true;
+                    break;
+                }
+            }
         }
     }
 
@@ -278,6 +282,18 @@ namespace AudioKitCore {
     {
         // Allow starting new notes again
         stoppingAllVoices = false;
+    }
+    
+    void Sampler::stopAllVoicesImmediate()
+    {
+        SamplerVoice* pVoice = &voice[0];
+        for (int i=0; i < MAX_POLYPHONY; i++, pVoice++)
+        {
+            int nn = pVoice->noteNumber;
+            if (nn >= 0) {
+                stopNote(nn, true);
+            }
+        }
     }
     
     void Sampler::render(unsigned channelCount, unsigned sampleCount, float *outBuffers[])

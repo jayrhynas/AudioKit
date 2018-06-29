@@ -251,3 +251,37 @@ void AKSamplerDSP::process(AUAudioFrameCount frameCount, AUAudioFrameCount buffe
         AudioKitCore::Sampler::render(channelCount, chunkSize, outBuffers);
     }
 }
+
+void AKSamplerDSP::handleMIDIEvent(AUMIDIEvent const& midiEvent) {
+    if (midiEvent.length != 3) return;
+    uint8_t status = midiEvent.data[0] & 0xF0;
+    switch (status) {
+        case 0x80: { // note off
+            uint8_t note = midiEvent.data[1];
+            if (note > 127) break;
+            
+            this->stopNote(note, false);
+            break;
+        }
+        
+        case 0x90: { // note on
+            uint8_t note = midiEvent.data[1];
+            uint8_t veloc = midiEvent.data[2];
+            if (note > 127 || veloc > 127) break;
+            
+            float freq = 440.0 * exp2f((float)(note - 69) / 12.0);
+            this->playNote(note, veloc, freq);
+            break;
+        }
+            
+        case 0xB0: { // channel mode
+            uint8_t msg = midiEvent.data[1];
+            switch (msg) {
+                case 0x7B: // all notes off
+                    this->stopAllVoicesImmediate();
+                    break;
+            }
+            break;
+        }
+    }
+}

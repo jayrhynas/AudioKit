@@ -86,6 +86,9 @@ namespace AudioKitCore
         // temporary state
         bool stoppingAllVoices;
         
+        // call from audio thread only
+        void stopAllVoicesImmediate();
+        
         // helper functions
         SamplerVoice* voicePlayingNote(unsigned noteNumber);
         KeyMappedSampleBuffer* lookupSample(unsigned noteNumber, unsigned velocity);
