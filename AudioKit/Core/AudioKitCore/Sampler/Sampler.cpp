@@ -10,6 +10,22 @@
 #include <math.h>
 
 namespace AudioKitCore {
+    struct SamplerLayer {
+        ADSREnvelopeParameters *adsrEnvelopeParameters;
+        ADSREnvelopeParameters *filterEnvelopeParameters;
+        
+        SamplerLayer()
+        : adsrEnvelopeParameters(nullptr)
+        , filterEnvelopeParameters(nullptr)
+        {
+        }
+        
+        ~SamplerLayer()
+        {
+            if (adsrEnvelopeParameters)   delete adsrEnvelopeParameters;
+            if (filterEnvelopeParameters) delete filterEnvelopeParameters;
+        }
+    };
     
     Sampler::Sampler()
     : sampleRate(44100.0f)    // sensible guess
@@ -37,7 +53,7 @@ namespace AudioKitCore {
     
     int Sampler::init(double sampleRate)
     {
-        sampleRate = (float)sampleRate;
+        this->sampleRate = (float)sampleRate;
         adsrEnvelopeParameters.updateSampleRate((float)(sampleRate/CHUNKSIZE));
         filterEnvelopeParameters.updateSampleRate((float)(sampleRate/CHUNKSIZE));
         vibratoLFO.waveTable.sinusoid();
@@ -50,13 +66,42 @@ namespace AudioKitCore {
     
     void Sampler::deinit()
     {
+        for (SamplerLayer *layer : layerList) delete layer;
+        layerList.clear();
+        
         isKeyMapValid = false;
         for (KeyMappedSampleBuffer* pBuf : sampleBufferList) delete pBuf;
         sampleBufferList.clear();
         for (int i=0; i < MIDI_NOTENUMBERS; i++) keyMap[i].clear();
     }
     
-    void Sampler::loadSampleData(AKSampleDataDescriptor& sdd)
+    SamplerLayer *Sampler::loadLayer(AKLayerDescriptor &ld)
+    {
+        SamplerLayer *layer = new SamplerLayer();
+        layerList.push_back(layer);
+        
+        if (ld.adsrEnvelope) {
+            layer->adsrEnvelopeParameters = new ADSREnvelopeParameters();
+            
+            AKEnvelopeDescriptor *adsr = ld.adsrEnvelope;
+            layer->adsrEnvelopeParameters->init(sampleRate,
+                                                adsr->attackDuration, adsr->decayDuration,
+                                                adsr->sustainLevel,   adsr->releaseDuration);
+        }
+        
+        if (ld.filterEnvelope) {
+            layer->filterEnvelopeParameters = new ADSREnvelopeParameters();
+            
+            AKEnvelopeDescriptor *filter = ld.filterEnvelope;
+            layer->adsrEnvelopeParameters->init(sampleRate,
+                                                filter->attackDuration, filter->decayDuration,
+                                                filter->sustainLevel,   filter->releaseDuration);
+        }
+        
+        return layer;
+    }
+    
+    void Sampler::loadSampleData(AKSampleDataDescriptor& sdd, SamplerLayer *layer)
     {
         KeyMappedSampleBuffer* pBuf = new KeyMappedSampleBuffer();
         pBuf->minimumNoteNumber = sdd.sampleDescriptor.minimumNoteNumber;
@@ -91,6 +136,11 @@ namespace AudioKitCore {
             else pBuf->loopStartPoint = pBuf->endPoint * sdd.sampleDescriptor.loopStartPoint;
             if (sdd.sampleDescriptor.loopEndPoint > 1.0f) pBuf->loopEndPoint = sdd.sampleDescriptor.loopEndPoint;
             else pBuf->loopEndPoint = pBuf->endPoint * sdd.sampleDescriptor.loopEndPoint;
+        }
+        
+        if (layer) {
+            pBuf->adsrEnvelopeParameters   = layer->adsrEnvelopeParameters;
+            pBuf->filterEnvelopeParameters = layer->filterEnvelopeParameters;
         }
     }
     
@@ -229,6 +279,10 @@ namespace AudioKitCore {
                 // found a free voice: assign it to play this note
                 KeyMappedSampleBuffer* pBuf = lookupSample(noteNumber, velocity);
                 if (pBuf == 0) return;  // don't crash if someone forgets to build map
+                
+                pVoice->adsrEnvelope.pParams   = pBuf->adsrEnvelopeParameters   ?: &adsrEnvelopeParameters;
+                pVoice->filterEnvelope.pParams = pBuf->filterEnvelopeParameters ?: &filterEnvelopeParameters;
+                
                 pVoice->start(noteNumber, sampleRate, noteFrequency, velocity / 127.0f, pBuf);
                 //printf("Play note %d (%.2f Hz) vel %d as %d (%.2f Hz, voice %d pBuf %p)\n",
                 //       noteNumber, noteFrequency, velocity, pBuf->noteNumber, pBuf->noteFrequency, i, pBuf);

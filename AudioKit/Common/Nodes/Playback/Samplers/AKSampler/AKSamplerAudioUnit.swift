@@ -9,7 +9,8 @@
 import AVFoundation
 
 public class AKSamplerAudioUnit: AKGeneratorAudioUnitBase {
-
+    public typealias Layer = UnsafeRawPointer
+    
     var pDSP: UnsafeMutableRawPointer?
 
     func setParameter(_ address: AKSamplerParameter, value: Double) {
@@ -253,14 +254,19 @@ public class AKSamplerAudioUnit: AKGeneratorAudioUnitBase {
         doAKSamplerRestartVoices(pDSP)
     }
 
-    public func loadSampleData(from sampleDataDescriptor: AKSampleDataDescriptor) {
+    public func loadLayer(from layerDescriptor: AKLayerDescriptor) -> Layer {
+        var copy = layerDescriptor
+        return doAKSamplerLoadLayer(pDSP, &copy)
+    }
+    
+    public func loadSampleData(from sampleDataDescriptor: AKSampleDataDescriptor, in layer: Layer? = nil) {
         var copy = sampleDataDescriptor
-        doAKSamplerLoadData(pDSP, &copy)
+        doAKSamplerLoadData(pDSP, &copy, layer)
     }
 
-    public func loadCompressedSampleFile(from sampleFileDescriptor: AKSampleFileDescriptor) {
+    public func loadCompressedSampleFile(from sampleFileDescriptor: AKSampleFileDescriptor, in layer: Layer? = nil) {
         var copy = sampleFileDescriptor
-        doAKSamplerLoadCompressedFile(pDSP, &copy)
+        doAKSamplerLoadCompressedFile(pDSP, &copy, layer)
     }
 
     public func unloadAllSamples() {
